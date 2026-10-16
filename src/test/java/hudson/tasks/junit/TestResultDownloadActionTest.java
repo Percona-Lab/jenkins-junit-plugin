@@ -121,8 +121,25 @@ class TestResultDownloadActionTest {
     }
 
     @Test
-    void requiresTheArtifactsPermission() throws Exception {
-        assertEquals(403, get("bob", TestResultDownloadAction.FILE_NAME, null).statusCode());
+    void readingTheBuildIsEnoughWhileTheArtifactsPermissionIsOff() throws Exception {
+        // Run.ARTIFACTS is disabled by default, as on most controllers
+        assertEquals(200, get("bob", TestResultDownloadAction.FILE_NAME, null).statusCode());
+    }
+
+    @Test
+    void requiresTheArtifactsPermissionOnceEnabled() throws Exception {
+        // what hudson.Functions.isArtifactsPermissionEnabled() reads, as Run.doArtifact does
+        System.setProperty("hudson.security.ArtifactsPermission", "true");
+        Run.ARTIFACTS.setEnabled(true);
+        try {
+            assertEquals(
+                    403, get("bob", TestResultDownloadAction.FILE_NAME, null).statusCode());
+            assertEquals(
+                    200, get("alice", TestResultDownloadAction.FILE_NAME, null).statusCode());
+        } finally {
+            Run.ARTIFACTS.setEnabled(false);
+            System.clearProperty("hudson.security.ArtifactsPermission");
+        }
     }
 
     @Test

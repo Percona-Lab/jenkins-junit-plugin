@@ -3,6 +3,7 @@ package hudson.tasks.junit;
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
+import hudson.Functions;
 import hudson.model.Action;
 import hudson.model.Run;
 import io.jenkins.plugins.junit.storage.FileJunitTestResultStorage;
@@ -74,7 +75,10 @@ public final class TestResultDownloadAction implements Action {
     }
 
     public void doDynamic(StaplerRequest2 req, StaplerResponse2 rsp) throws IOException {
-        run.checkPermission(Run.ARTIFACTS);
+        // like Run.doArtifact: Run.ARTIFACTS is off unless enabled, and then reading the build is enough
+        if (Functions.isArtifactsPermissionEnabled()) {
+            run.checkPermission(Run.ARTIFACTS);
+        }
         File file = getFile();
         String path = req.getRestOfPath();
         if (!file.isFile()) {
