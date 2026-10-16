@@ -26,6 +26,7 @@ package hudson.tasks.test;
 import hudson.model.Job;
 import hudson.model.Result;
 import hudson.model.Run;
+import hudson.tasks.junit.CaseHistoryCounts;
 import hudson.tasks.junit.CaseResult;
 import hudson.tasks.junit.Failure;
 import hudson.tasks.junit.TestAction;
@@ -263,14 +264,16 @@ public abstract class TestResult extends TestObject {
      * Gets the number of test cases under this result that failed in this build but passed in the previous one
      */
     public long getRegressionCount() {
-        return countCases(this, CaseResult.Status.REGRESSION);
+        CaseHistoryCounts.Counts counts = CaseHistoryCounts.of(this);
+        return counts != null ? counts.regressions() : countCases(this, CaseResult.Status.REGRESSION);
     }
 
     /**
      * Gets the number of test cases under this result that passed in this build but failed in the previous one
      */
     public long getFixedCount() {
-        return countCases(this, CaseResult.Status.FIXED);
+        CaseHistoryCounts.Counts counts = CaseHistoryCounts.of(this);
+        return counts != null ? counts.fixed() : countCases(this, CaseResult.Status.FIXED);
     }
 
     private static long countCases(TestResult result, CaseResult.Status status) {
